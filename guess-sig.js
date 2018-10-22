@@ -20,7 +20,6 @@ const {options, argv} = getOpts(process.argv.slice(2), {
 let format     = options.format   || "hex";
 const columns  = +options.columns || 16;
 const numBytes = +options.bytes   || 512;
-const version  = !!options.version;
 const dotHack  = !!options.dotHack;
 if(options.json)  format = "json";
 if(options.regex) format = "regex";
@@ -105,7 +104,7 @@ switch(format){
 	
 	// Print an ECMAScript RegExp literal for matching the guessed signature
 	case "regex": {
-		let patterns = [];
+		const patterns = [];
 		let prevByte = false;
 		let repeated = 0;
 		
