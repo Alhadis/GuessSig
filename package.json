@@ -1,9 +1,9 @@
 {
-	"name": "guess-signature",
+	"name": "guess-sig",
 	"version": "v0.0.0",
 	"description": "Display matching byte sequences in file headers.",
 	"author": "John Gardner <gardnerjohng@gmail.com>",
-	"repository": "https://github.com/Alhadis/GuessSignature.git",
+	"repository": "https://github.com/Alhadis/GuessSig.git",
 	"keywords": ["magic", "signatures", "forensics", "binary", "magic numbers"],
 	"preferGlobal": true,
 	"license": "ISC",
