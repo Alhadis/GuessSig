@@ -1,0 +1,14 @@
+{
+	"name": "guess-signature",
+	"version": "v0.0.0",
+	"description": "Display matching byte sequences in file headers.",
+	"author": "John Gardner <gardnerjohng@gmail.com>",
+	"license": "ISC",
+	"main": "./guess-sig.js",
+	"bin": {
+		"guess-sig": "./guess-sig.js"
+	},
+	"dependencies": {
+		"get-options": "^1.1.3"
+	}
+}
