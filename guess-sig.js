@@ -13,7 +13,7 @@ const {options, argv} = getOpts(process.argv.slice(2), {
 	"-d, --dot-hack":        "",
 	"-h, --hex":             "",
 	"-j, --json":            "",
-	"-r, --regexp, --regex": "",
+	"-r, --regex, --regexp": "",
 	"-v, --version":         "",
 });
 let format     = options.format   || "hex";

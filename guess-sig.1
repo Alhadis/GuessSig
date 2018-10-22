@@ -1,0 +1,129 @@
+.ds = Ns = Ns
+.Dd October 23, 2018
+.Dt GUESS-SIG 1
+.Os
+.Sh NAME
+.Nm guess-sig
+.Nd display matching byte sequences in file headers
+.Sh SYNOPSIS
+.Nm
+.Op Fl c Ar columns
+.Op Fl b Ar bytes
+.Op Fl f Ar format
+.Op Fl -dot-hack
+.Op Fl -hex
+.Op Fl -json
+.Op Fl -regex
+.Ar files
+.Nm
+.Op Fl v Fl -version
+.Sh DESCRIPTION
+.Nm
+searches the given input
+.Ar files
+for common byte sequences, emitting those with identical values and offsets.
+Its main purpose is to help identify the signatures of undocumented or proprietary file formats.
+.
+.Pp
+The following options are available:
+.
+.Bl -tag -width indent
+.It Fl c Ar num , Fl -cols \*= Ar num , Fl -columns \*= Ar number
+Line-wrap output to fit
+.Ar num
+columns, used only when
+.Fl -format
+is
+.Ql hex .
+The default is
+.Em 16 .
+.
+.It Fl b Ar num , Fl n Ar num , Fl -bytes \*= Ar number
+Limit scanning to
+.Ar num
+bytes per file.
+The default limit is
+.Em 512
+bytes.
+.
+.It Fl d , Fl -dot-hack
+Generate regexp output compatible with older JavaScript engines.
+Implies
+.Fl -format \*= regexp .
+.
+.It Fl f Ar type , Fl -format \*= Ar type
+Specify the output format for guessed file signatures.
+Supported
+.Ar types
+are
+.Ql hex ,
+.Ql json ,
+and
+.Ql regex .
+The default is
+.Ql hex .
+Each supported
+.Ar type
+has a corresponding switch of the same name, described below.
+.
+.It Fl h , Fl -hex
+Display matching bytes as hexadecimal, and non-matching bytes as
+.Ql __ .
+This is the default format.
+.
+.It Fl j , Fl -json
+Emit a JSON array where matching bytes are numbers, and non-matching bytes are
+.Ql null .
+Analogous to
+.Dq Fl -format \*= Ar json .
+.
+.It Fl r , Fl -regex , Fl -regexp
+Output an ECMAScript RegExp literal for matching the guessed file signature.
+Analogous to
+.Dq Fl -format \*= Ar regex .
+.Pp
+Note that generated patterns use the \(lqdotall\(rq modifier,
+which is not supported by older JavaScript engines.
+If portability is a concern, include the
+.Fl -dot-hack
+switch.
+.
+.It Fl v , Fl -version
+Print the program's version string, then exit.
+.El
+.
+.Sh EXIT STATUS
+Exits with an error code of
+.Sy 1
+if no files were given, or no meaningful data was found.
+.
+.Sh EXAMPLES
+Display matching bytes as hex values:
+.
+.Bd -literal -offset 6n
+$ guess-sig ~/Pictures/*.jpg
+
+FF D8 FF E0 00 10 4A 46 49 46 00 01 01 __ 00 __
+00 __ 00 00 FF __ 00 __ __ __ __ __ __ __ __ __
+.Ed
+.Pp
+Generate machine-readable JSON data:
+.Bd -literal -offset 6n
+$ guess-sig -j ~/Pictures/*.jpg
+
+[255,216,255,224,0,16,74, \.\.\. 70,73,70,0,1,1,null,0,null]
+.Ed
+.
+.Pp
+Generate a RegExp literal to match the signature in JavaScript:
+.Bd -literal -offset 6n
+$ guess-sig -r ~/Pictures/*.jpg
+
+/^\e0\exFFKA\.{4}nsrP#Inf\.{48}Prot\.{2}\e0\e0#Filx\ex01/s
+.Ed
+.
+.Sh DIAGNOSTICS
+Warnings are emitted to standard error if passed an empty or non-existent file,
+or if entities aren't a regular file.
+.Sh SEE ALSO
+.Xr file 1

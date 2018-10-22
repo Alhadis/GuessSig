@@ -5,9 +5,8 @@
 	"author": "John Gardner <gardnerjohng@gmail.com>",
 	"license": "ISC",
 	"main": "./guess-sig.js",
-	"bin": {
-		"guess-sig": "./guess-sig.js"
-	},
+	"bin": {"guess-sig": "./guess-sig.js"},
+	"man": {"guess-sig.1"},
 	"dependencies": {
 		"get-options": "^1.1.3"
 	}
