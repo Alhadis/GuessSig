@@ -7,9 +7,10 @@ const headers = [];
 
 // Parse options
 const {options, argv} = getOpts(process.argv.slice(2), {
-	"-c, --cols, --columns": "<number=\\d+>",
-	"-b, --bytes, -n":       "<number=\\d+>",
-	"-f, --format":          "<type>",
+	"-c, --cols, --columns": "[number=\\d+]",
+	"-b, --bytes, -n":       "[number=\\d+]",
+	"-f, --format":          "[type]",
+	"-d, --dot-hack":        "",
 	"-h, --hex":             "",
 	"-j, --json":            "",
 	"-r, --regexp, --regex": "",
@@ -19,6 +20,7 @@ let format     = options.format   || "hex";
 const columns  = +options.columns || 16;
 const numBytes = +options.bytes   || 512;
 const version  = !!options.version;
+const dotHack  = !!options.dotHack;
 if(options.json)  format = "json";
 if(options.regex) format = "regex";
 if(options.hex)   format = "hex";
@@ -99,13 +101,14 @@ switch(format){
 			if(prevByte === byte)
 				++repeated;
 			else{
-				prevByte && patterns.push(regexify(prevByte, repeated));
+				if(false !== prevByte)
+					patterns.push(regexify(prevByte, repeated, dotHack));
 				prevByte = byte;
 				repeated = 0;
 			}
 		}
-		prevByte && patterns.push(regexify(prevByte, repeated));
-		process.stdout.write(`/^${patterns.join("")}/`);
+		null !== prevByte && patterns.push(regexify(prevByte, repeated));
+		process.stdout.write(`/^${patterns.join("")}/${dotHack ? "" : "s"}`);
 		process.stdout.isTTY && process.stdout.write("\n");
 		break;
 	}
@@ -133,6 +136,7 @@ function isHomogenous(array){
 	return true;
 }
 
+
 /**
  * Convert an integer to uppercased hexadecimal.
  * @example hex(12) => "0C"
@@ -143,35 +147,41 @@ function hex(byte){
 	return (byte < 0x10 ? "0" : "") + byte.toString(16).toUpperCase();
 }
 
+
 /**
  * Convert a byte (with possible repetition) to a regexp pattern.
  * @param {Number} byte
  * @param {Number} [repeatCount=0]
+ * @param {Boolean} [dotHack=false]
  * @return {String}
  */
-function regexify(byte, repeatCount = 0){
+function regexify(byte, repeatCount = 0, dotHack = false){
 	const quant = repeatCount > 0 ? `{${repeatCount + 1}}` : "";
 	
-	// Printable ASCII range
-	if(byte > 31 && byte < 127)
-		return String.fromCharCode(byte) + quant;
-	
 	switch(byte){
-		case 0x00: return `\\0${quant}`; // Null byte
-		case 0x09: return `\\t${quant}`; // Tab
-		case 0x0A: return `\\n${quant}`; // Newline
-		case 0x0B: return `\\v${quant}`; // Vertical tab
-		case 0x0C: return `\\f${quant}`; // Form feed
-		case 0x0D: return `\\r${quant}`; // Carriage return
+		case 0x00: return `\\0${quant}`;  // Null byte
+		case 0x09: return `\\t${quant}`;  // Tab
+		case 0x0A: return `\\n${quant}`;  // Newline
+		case 0x0B: return `\\v${quant}`;  // Vertical tab
+		case 0x0C: return `\\f${quant}`;  // Form feed
+		case 0x0D: return `\\r${quant}`;  // Carriage return
+		
+		// Metacharacters
+		case 0x24: case 0x28: case 0x29: case 0x2A: case 0x2B:
+		case 0x2E: case 0x3F: case 0x5B: case 0x5C: case 0x5D:
+		case 0x5E: case 0x7B: case 0x7C: case 0x7D:
+			return `\\${String.fromCharCode(byte)}${quant}`;
 		
 		// Match any byte
 		case null:
-			// Use a stupid hack to include newlines, because ECMAScript's
-			// new `/s` flag isn't universally supported yet.
-			return `(?:.|[^\\0])${quant}`;
+			return dotHack ? `(?:.|[^\\0])${quant}` : `.${quant}`;
 		
-		// Codepoint escape
 		default:
+			// Printable ASCII range
+			if(byte > 31 && byte < 127)
+				return String.fromCharCode(byte) + quant;
+			
+			// Codepoint escape for unprintable or high-bit character
 			return `\\x${hex(byte)}${quant}`;
 	}
 }
