@@ -7,12 +7,14 @@ const headers = [];
 
 // Parse options
 const {options, argv} = getOpts(process.argv.slice(2), {
-	"-n, -b, --bytes": "<number=\\d+>",
-	"-f, --format":    "<type>",
-	"-v, --version":   "",
+	"-c, --cols, --columns": "<number=\\d+>",
+	"-n, -b, --bytes":       "<number=\\d+>",
+	"-f, --format":          "<type>",
+	"-v, --version":         "",
 });
-const format   = options.format || "hex";
-const numBytes = +options.bytes || 512;
+const columns  = +options.columns || 16;
+const format   = options.format   || "hex";
+const numBytes = +options.bytes   || 512;
 const version  = !!options.version;
 
 // Print version string and exit
@@ -73,7 +75,6 @@ for(let i = 0; i < numFiles; ++i)
 		table[j][i] = headers[i][j];
 
 
-
 table = table.map(column => isHomogenous(column) ? column[0] : null);
 
 switch(format){
@@ -82,10 +83,11 @@ switch(format){
 		break;
 	
 	case "hex":
-		console.log(table.map(b => null === b
-			? "__"
-			: hex(b)
-		).join(" "));
+		for(let i = 0; i < numBytes; ++i){
+			i && process.stdout.write(i % columns ? " " : "\n");
+			process.stdout.write(null === table[i] ? "__" : hex(table[i]));
+		}
+		process.stdout.write("\n");
 		break;
 }
 
@@ -99,5 +101,5 @@ function isHomogenous(array){
 }
 
 function hex(byte){
-	return byte.toString(16).toUpperCase();
+	return (byte < 0x10 ? "0" : "") + byte.toString(16).toUpperCase();
 }
