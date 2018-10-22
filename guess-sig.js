@@ -15,6 +15,7 @@ const {options, argv} = getOpts(process.argv.slice(2), {
 	"-j, --json":            "",
 	"-r, --regex, --regexp": "",
 	"-v, --version":         "",
+	"--help":                "",
 });
 let format     = options.format   || "hex";
 const columns  = +options.columns || 16;
@@ -25,10 +26,22 @@ if(options.json)  format = "json";
 if(options.regex) format = "regex";
 if(options.hex)   format = "hex";
 
+// Print a usage summary and exit
+if(options.help){
+	showUsage();
+	process.exit(0);
+}
+
 // Print version string and exit
 if(options.version){
 	console.log(require("./package.json").version);
 	process.exit(0);
+}
+
+// Bail if no arguments were given
+if(!argv.length){
+	showUsage();
+	process.exit(1);
 }
 
 // Collect header samples from each file named on command-line
@@ -184,4 +197,25 @@ function regexify(byte, repeatCount = 0, dotHack = false){
 			// Codepoint escape for unprintable or high-bit character
 			return `\\x${hex(byte)}${quant}`;
 	}
+}
+
+
+/**
+ * Display a brief help summary.
+ */
+function showUsage(){
+	// Bold, underline, off
+	const [B, U, O] = process.stdout.isTTY
+		? ["\x1B[1m", "\x1B[4m", "\x1B[0m"]
+		: ["", "", ""];
+	let usage = [
+		`${B}Usage:${O} guess-sig`,
+		`[-${B}dhjr${O}]`,
+		`[-${B}c${O} ${U}cols${O}]`,
+		`[-${B}b${O} ${U}bytes${O}]`,
+		`[-${B}f${O} ${U}format${O}] ${U}...files${O}`,
+	].join(" ");
+	if("win32" !== process.platform)
+		usage += "\n\nRun `man guess-sig' for full documentation.";
+	console.log(usage);
 }
